@@ -41,9 +41,9 @@ locals { timestamp = regex_replace(timestamp(), "[- TZ:]", "") }
 # Note that AWS credentials come from the environment and do not
 # need to be provided directly here
 # https://www.packer.io/docs/templates/hcl_templates/blocks/source
-source "amazon-ebs" "flux-compute" {
-  ami_name        = "packer-aws-flux-compute-${local.timestamp}"
-  ami_description = "A flux-compute node with Rocky Linux intended to run on AWS EC2"
+source "amazon-ebs" "flux-manager" {
+  ami_name        = "packer-aws-flux-manager-${local.timestamp}"
+  ami_description = "A flux-manager node with Rocky Linux intended to run on AWS EC2"
   instance_type   = "${var.instance_type}"
   region          = "${var.region}"
   ssh_username    = "${var.ssh_username}"
@@ -53,9 +53,11 @@ source "amazon-ebs" "flux-compute" {
 }
 
 build {
-  name    = "flux-compute"
-  sources = ["source.amazon-ebs.flux-compute"]
+  name    = "flux-manager"
+  sources = ["source.amazon-ebs.flux-manager"]
+
+  # This allows us to store shared logic, plus custom logic for the login node
   provisioner "shell" {
-    scripts = ["../shared/install-flux.sh", "./flux-compute-builder-startup-script.sh"]
+    scripts = ["../shared/install-flux.sh", "./flux-manager-builder-startup-script.sh"]
   }
 }
