@@ -1,5 +1,21 @@
 #!/bin/bash 
 
+# This was originally for login nodes
+cat << "CONFIG_HOSTBASED_AUTH" > /tmp/03-hostbased-auth.sh
+#!/bin/bash
+
+cd /etc/ssh
+ 
+chmod u+s /usr/libexec/openssh/ssh-keysign
+ 
+sed -i 's/#   HostbasedAuthentication no/    HostbasedAuthentication yes\n    EnableSSHkeysign yes/g' /etc/ssh/ssh_config
+CONFIG_HOSTBASED_AUTH
+
+sudo mkdir -p /etc/flux/login/conf.d
+sudo mv /tmp/03-hostbased-auth.sh /etc/flux/login/conf.d/03-hostbased-auth.sh
+
+
+# This was originally for the manager
 sudo chown flux:flux /usr/local/etc/flux
 
 sudo mkdir -p /usr/local/etc/flux/imp/conf.d
@@ -272,3 +288,14 @@ echo "/etc/munge *(rw,no_subtree_check,no_root_squash)" >> /tmp/exports
 
 sudo mv /tmp/exports /etc/exports
 sudo systemctl enable nfs-server
+
+# Just in case it isn't made yet...
+sudo mkdir -p /etc/flux/compute/conf.d
+
+cat << "RUN_BOOT_SCRIPT" > /tmp/99-boot-script.sh
+#!/bin/bash
+
+echo "Hello I am booting."
+
+RUN_BOOT_SCRIPT
+sudo mv /tmp/99-boot-script.sh /etc/flux/compute/conf.d/99-boot-script.sh

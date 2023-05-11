@@ -23,17 +23,26 @@ cd ./build-images
 ```
 ```bash
 $ make
+# or, for shared node setup, recommended
+$ make node
 # or
 $ make compute
 $ make login    # not done yet
 $ make manager  # not done yet
 ```
-
 These are under development! My plan is to finish the base images, and then
 figure out bringing them all up, and likely we will need a common metadata Api
 for different sets of images to see one another, from a networking standpoint.
 Stay tuned!
 
+### Deploy with Terraform
+
+Once you have images, choose a directory under [examples](examples) to deploy from:
+
+```bash
+$ cd examples/basic
+$ make
+```
 
 ### Develoipment
 

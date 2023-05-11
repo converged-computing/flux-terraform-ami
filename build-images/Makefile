@@ -5,6 +5,10 @@ all: compute login manager
 compute: 
 	$(MAKE) -C compute all
 
+.PHONY: node
+node: 
+	$(MAKE) -C node all
+
 .PHONY: login
 login: 
 	$(MAKE) -C login all
