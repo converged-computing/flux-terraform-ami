@@ -41,6 +41,19 @@ Once you have images, choose a directory under [examples](examples) to deploy fr
 
 ```bash
 $ cd examples/basic
+```
+For any example, edit the variables in the *.tfvars file. You should then init, fmt, validate, and then deploy (build)
+
+```bash
+$ make init
+$ make fmt
+$ make validate
+$ make build
+```
+
+And they all can be run with `make`:
+
+```bash
 $ make
 ```
 
