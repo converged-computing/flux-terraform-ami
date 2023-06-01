@@ -84,7 +84,6 @@ module "autoscale_group" {
       }
     }
   ]
-
   context = module.this.context
 }
 
@@ -93,6 +92,7 @@ module "autoscale_group" {
 # and how we can change the names to be predictible
 # https://www.terraform.io/docs/configuration/expressions.html#string-literals
 locals {
+  zone_id  = "Z0134952203D4J2XTRCUD"
   userdata = <<-USERDATA
     #!/bin/bash
     # TODO mount nfs?
@@ -100,6 +100,10 @@ locals {
     # echo "Changing Hostname"
     # hostname "flux-"
     # echo "flux-" > /etc/hostname
+    instanceid=$(curl -s http://169.254.169.254/latest/meta-data/instance-id | sed 's/i-//g')
+    hostnamectl set-hostname "flux-$${instanceid}"
+    echo "flux-$${instanceid}" > /etc/hostname
+    hostname -F /etc/hostname
     echo "Hello I am hostname $(hostname)"
   USERDATA
 

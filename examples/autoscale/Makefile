@@ -12,15 +12,11 @@ fmt:
 .PHONY: validate
 validate: 
 	terraform validate
-
-.PHONY: plan
-plan: 
-	terraform plan -var-file us-east-1.tfvars
-
+	
 .PHONY: build
 build: 
-	terraform apply -var-file us-east-1.tfvars
+	terraform apply
 
 .PHONY: destroy
 destroy: 
-	terraform destroy -var-file us-east-1.tfvars
+	terraform destroy
