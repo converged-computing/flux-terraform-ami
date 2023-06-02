@@ -27,21 +27,6 @@ locals {
 # aws ec2 describe-instances --region us-east-1 --filters "Name=tag:selector,Values=flux-selector" | jq .Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddress
 # aws ec2 describe-instances --region us-east-1 --filters "Name=tag:selector,Values=flux-selector" | jq .Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName
 
-# Note we can get these in the environment via:
-# export TF_VAR_AWS_<variable>=VALUE
-variable "aws_key" {
-  description = "AWS access key for instance"
-  type        = string
-}
-variable "aws_secret" {
-  description = "AWS access secret for instance"
-  type        = string
-}
-variable "aws_session" {
-  description = "AWS session token for instance"
-  type        = string
-}
-
 terraform {
   required_providers {
     aws = {
@@ -58,30 +43,17 @@ data "template_file" "startup_script" {
 # Install AWS client
 python3 -m pip install awscli
 
-# Export our credentials to bashrc and profile
-echo "export AWS_SECRET_ACCESS_KEY=${var.aws_secret}" >> ~/.bashrc
-echo "export AWS_ACCESS_KEY_ID=${var.aws_key}" >> ~/.bashrc
-echo "export AWS_SESSION_TOKEN=${var.aws_session}" >> ~/.bashrc
-echo "export AWS_DEFAULT_REGION=${local.region}" >> ~/.bashrc
-source ~/.bashrc
-
-# Add to rocky user home as well
-echo "export AWS_SECRET_ACCESS_KEY=${var.aws_secret}" >> /home/rocky/.bashrc
-echo "export AWS_ACCESS_KEY_ID=${var.aws_key}" >> /home/rocky/.bashrc
-echo "export AWS_SESSION_TOKEN=${var.aws_session}" >> /home/rocky/.bashrc
-echo "export AWS_DEFAULT_REGION=${local.region}" >> /home/rocky/.bashrc
-
 # Wait for the count to be up
-while [[ $(aws ec2 describe-instances --region us-east-1 --filters "Name=tag:selector,Values=flux-selector" | jq .Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName | wc -l) -ne ${local.desired_size} ]]
+while [[ $(aws ec2 describe-instances --region us-east-1 --filters "Name=tag:selector,Values=${local.name}-selector" | jq .Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName | wc -l) -ne ${local.desired_size} ]]
 do
    echo "Desired count not reached, sleeping."
    sleep 10
 done
-found_count=$(aws ec2 describe-instances --region us-east-1 --filters "Name=tag:selector,Values=flux-selector" | jq .Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddress | wc -l)
+found_count=$(aws ec2 describe-instances --region us-east-1 --filters "Name=tag:selector,Values=${local.name}-selector" | jq .Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddress | wc -l)
 echo "Desired count $found_count is reached"
 
 # Update the flux config files with our hosts - we need the ones from hostname
-hosts=$(aws ec2 describe-instances --region us-east-1 --filters "Name=tag:selector,Values=flux-selector" | jq -r .Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName)
+hosts=$(aws ec2 describe-instances --region us-east-1 --filters "Name=tag:selector,Values=${local.name}-selector" | jq -r .Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName)
 
 # Hack them together into comma separated list
 NODELIST=""
@@ -285,6 +257,59 @@ resource "aws_lb_target_group" "target_group" {
   vpc_id      = aws_vpc.main.id
 }
 
+
+# Create an IAM instance profile to allow using the awscli
+
+resource "aws_iam_policy" "ec2_policy" {
+  name        = "${local.name}-ec2-policy"
+  path        = "/"
+  description = "Policy to allow listing instances"
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [{
+      "Effect" : "Allow",
+      "Action" : [
+        "ec2:DescribeInstances",
+        "ec2:DescribeImages",
+        "ec2:DescribeTags",
+        "ec2:DescribeSnapshots"
+      ],
+      "Resource" : "*"
+    }]
+  })
+}
+
+# The trust policy specifies who or what can assume the role
+# The permission policy specify the actions available on what resources
+resource "aws_iam_role" "ec2_role" {
+  name = "${local.name}-ec2-role"
+  assume_role_policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [{
+      "Effect" = "Allow",
+      "Action" = "sts:AssumeRole",
+      "Sid"    = ""
+      "Principal" = {
+        "Service" = "ec2.amazonaws.com"
+      }
+    }],
+  })
+}
+
+
+# Attach the role to the policy file
+resource "aws_iam_policy_attachment" "ec2_policy_role" {
+  name       = "${local.name}-ec2-attachment"
+  roles      = [aws_iam_role.ec2_role.name]
+  policy_arn = aws_iam_policy.ec2_policy.arn
+}
+
+# Create an instance profile
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "${local.name}-ec2-profile"
+  role = aws_iam_role.ec2_role.name
+}
+
 resource "aws_launch_template" "launch_template" {
 
   name = "launch_template"
@@ -294,6 +319,11 @@ resource "aws_launch_template" "launch_template" {
   key_name      = local.key_name
   user_data     = base64encode(data.template_file.startup_script.rendered)
 
+  # So we can use the AWS client
+  iam_instance_profile {
+    # arn = aws_iam_instance_profile.iam_profile.arn
+    name = aws_iam_instance_profile.ec2_profile.name
+  }
   block_device_mappings {
     device_name = "/dev/sda1"
 
@@ -327,7 +357,6 @@ resource "aws_autoscaling_group" "autoscaling_group" {
   # These could also be selected based on the asg, e.g.,
   # "aws:autoscaling:groupName"
   # "flux-autoscaling-group"
-
   tag {
     key                 = "selector"
     value               = "${local.name}-selector"
