@@ -23,17 +23,28 @@ cd ./build-images
 ```
 ```bash
 $ make
-# or, for shared node setup, recommended
+# this builds a shared node setup
 $ make node
-# or
-$ make compute
-$ make login    # not done yet
-$ make manager  # not done yet
 ```
-These are under development! My plan is to finish the base images, and then
-figure out bringing them all up, and likely we will need a common metadata Api
-for different sets of images to see one another, from a networking standpoint.
-Stay tuned!
+
+Note that the build takes about 50 minutes (why we use an AMI and don't build Flux on the fly!
+
+```console
+==> flux-compute.amazon-ebs.flux-compute: Deleting temporary keypair...
+Build 'flux-compute.amazon-ebs.flux-compute' finished after 50 minutes 39 seconds.
+
+==> Wait completed after 50 minutes 39 seconds
+
+==> Builds finished. The artifacts of successful builds are:
+--> flux-compute.amazon-ebs.flux-compute: AMIs were created:
+us-east-1: ami-0ff535566e7c13e8c
+
+make[1]: Leaving directory '/home/vanessa/Desktop/Code/flux/terraform-ami/build-images/node'
+```
+
+A previous design (building separate images for login, compute, and manager) was started,
+but not finished in lieu of the simpler design. It's included in [build-images/multi](build-images/multi)
+for those interested.
 
 ### Deploy with Terraform
 
@@ -41,15 +52,6 @@ Once you have images, choose a directory under [examples](examples) to deploy fr
 
 ```bash
 $ cd examples/autoscale
-```
-
-Since we want to get hosts on the instance using the aws client, export your credentials to the environment
-for the instances:
-
-```bash
-export TF_VAR_aws_secret=$AWS_SECRET_ACCESS_KEY 
-export TF_VAR_aws_key=$AWS_ACCESS_KEY_ID 
-export TF_VAR_aws_session=$AWS_SESSION_TOKEN 
 ```
 
 And then init and build:
@@ -74,7 +76,7 @@ name via "Connect" in the portal, but you could likely use the AWS client for th
 $ ssh -o 'IdentitiesOnly yes' -i "mykey.pem" rocky@ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com
 ```
 
-Check the cluster status and try running a job:
+Check the cluster status, the overlay status, and try running a job:
 
 ```bash
 $ flux resource list

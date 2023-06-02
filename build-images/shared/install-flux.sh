@@ -15,8 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# TODO install aws fuse
-
 sudo dnf update -y
 sudo dnf clean all
 
@@ -81,6 +79,10 @@ git clone https://github.com/openpmix/prrte.git && \
 # If GPUs are wanted, this will be available to install the driver
 curl -L https://developer.download.nvidia.com/compute/cuda/11.7.1/local_installers/cuda-repo-rhel8-11-7-local-11.7.1_515.65.01-1.x86_64.rpm --output /var/tmp/cuda-repo-rhel8-11-7-local-11.7.1_515.65.01-1.x86_64.rpm
 curl https://raw.githubusercontent.com/GoogleCloudPlatform/compute-gpu-installation/main/linux/install_gpu_driver.py --output /var/tmp/install_gpu_driver.py
+
+# This enables cgroups 2 - it's a flag added to grub!
+dnf install -y grubby 
+grubby --update-kernel=ALL --args="systemd.unified_cgroup_hierarchy=1"
 
 # Apptainer / Singularity
 APPTAINER_ASSETS=$(curl -s https://api.github.com/repos/apptainer/apptainer/releases/latest | jq '.[] | match(".*assets$"; "g") | .string' 2>/dev/null | tr -d '"')
