@@ -41,3 +41,14 @@ chown -R flux /run/flux
 # See the README.md for commands how to set this manually without systemd
 systemctl restart flux.service
 
+## These are for installing K3S
+
+LEADER=($(echo $NODELIST | tr "," "\n"))
+
+if [[ "$LEADER" == $(hostname) ]]; then
+	curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" K3S_TOKEN="${k3s_token_name}" sh -
+else
+    #TODO Sleep until the K3S service at the masternode is active
+    sleep 300
+    curl -sfL https://get.k3s.io | K3S_URL=https://"$LEADER":6443 K3S_TOKEN="${k3s_token_name}" K3S_KUBECONFIG_MODE="644" sh -
+fi  

@@ -23,7 +23,7 @@ locals {
   cidr_block_c = "10.0.3.0/24"
 
   # K3S TOKEN for joining cluster
-  personal_token = "aws_asg_flux_k3s_joint_venture"
+  personal_token = "<your_token>"
 }
 
 # Example queries to get public ip addresses or private DNS names
