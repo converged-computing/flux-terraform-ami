@@ -8,7 +8,7 @@ locals {
   ami           = "ami-0ff535566e7c13e8c"
   instance_type = "m4.large"
   vpc_cidr      = "10.0.0.0/16"
-  key_name      = "dinosaur"
+  key_name      = "rajib_ssh_2"
 
   # Must be larger than ami
   volume_size = 30
@@ -21,6 +21,9 @@ locals {
   cidr_block_a = "10.0.1.0/24"
   cidr_block_b = "10.0.2.0/24"
   cidr_block_c = "10.0.3.0/24"
+
+  # K3S TOKEN for joining cluster
+  personal_token = "aws_asg_flux_k3s_joint_venture"
 }
 
 # Example queries to get public ip addresses or private DNS names
@@ -39,8 +42,9 @@ terraform {
 # Read in a shared script to init / finalize the flux setup
 data "template_file" "startup_script" {
   template = templatefile("../scripts/flux-setup.sh", {
-    selector_name = local.name,
-    desired_size  = local.desired_size
+    selector_name  = local.name,
+    desired_size   = local.desired_size
+    k3s_token_name = local.personal_token # for k3s services
   })
 }
 
@@ -177,6 +181,32 @@ resource "aws_security_group" "security_group" {
     to_port     = 0
     description = "Allow pings"
   }
+
+  # These PORTS are for K3S
+  ingress {
+    description = "K3s supervisor and Kubernetes API Server"
+    from_port   = 6443
+    to_port     = 6443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "Flannel VXLAN"
+    from_port   = 8472
+    to_port     = 8472
+    protocol    = "udp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "Kubelet Metrics"
+    from_port   = 10250
+    to_port     = 10250
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  # END K3S PORTS
 
   egress {
     description = "Allow outgoing traffic"
