@@ -1,6 +1,6 @@
 #!/bin/bash
 
-hosts=$(aws ec2 describe-instances --region us-east-1 --filters "Name=tag:selector,Values=flux-selector" | jq -r .Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName)
+hosts=$(aws ec2 describe-instances --region us-east-1 --filters "Name=tag:selector,Values=${selector_name}-selector" | jq -r .Reservations[].Instances[].NetworkInterfaces[].PrivateIpAddresses[].PrivateDnsName)
 NODELIST=""
 for host in $hosts; do
    if [[ "$NODELIST" == "" ]]; then
