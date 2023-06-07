@@ -52,7 +52,6 @@ The best practice approach for giving the instances ability to list images (and 
 is with an IAM role. However, we used a previous approach to add credentials (scoped) directly to
 the environment in the startscript. That looked like this:
 
-```
 Since we want to get hosts on the instance using the aws client, export your credentials to the environment
 for the instances:
 
