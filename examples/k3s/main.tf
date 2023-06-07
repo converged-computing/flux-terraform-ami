@@ -8,7 +8,7 @@ locals {
   ami           = "ami-0ff535566e7c13e8c"
   instance_type = "m4.large"
   vpc_cidr      = "10.0.0.0/16"
-  key_name      = "rajib_ssh_2"
+  key_name      = "<AWS Key Name>"
 
   # Must be larger than ami
   volume_size = 30
