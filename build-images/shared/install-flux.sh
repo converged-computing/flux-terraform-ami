@@ -174,17 +174,21 @@ FIRST_BOOT_UNIT
 sudo mv /tmp/flux-config-compute.service /etc/systemd/system/flux-config-compute.service
 sudo systemctl enable flux-config-compute.service
 
-mkdir -p /etc/ssh/sshd_config.d
-touch /etc/ssh/sshd_config.d/disable_root_login.conf
+# Prepare the sshd config
+sudo mkdir -p /etc/ssh/sshd_config.d
 
+cat << "DISABLE_ROOT_LOGIN" > /tmp/disable_root_login.conf
 # State whether challenge-response authentication is allowed or not via PAM.
-echo "ChallengeResponseAuthentication no" >> /etc/ssh/sshd_config.d/disable_root_login.conf
+ChallengeResponseAuthentication no
 
 # Configure whether password authentication is allowed or not.
-echo "PasswordAuthentication no" >> /etc/ssh/sshd_config.d/disable_root_login.conf
+PasswordAuthentication no
 
 # Enables the Pluggable Authentication Module interface. If set to yes this will enable PAM authentication using ChallengeResponseAuthentication and PasswordAuthentication in addition to PAM account and session module processing for all authentication types.
-echo "UsePAM no" >> /etc/ssh/sshd_config.d/disable_root_login.conf
+UsePAM no
 
 # PermitRootLogin – Specifies whether root can log in using ssh or not.
-echo "PermitRootLogin no" >> /etc/ssh/sshd_config.d/disable_root_login.conf
+PermitRootLogin no
+DISABLE_ROOT_LOGIN
+
+sudo mv /tmp/disable_root_login.conf /etc/ssh/sshd_config.d/disable_root_login.conf
