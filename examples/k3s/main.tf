@@ -5,7 +5,7 @@ locals {
   name          = "k3s"
   pwd           = basename(path.cwd)
   region        = "us-east-1"
-  ami           = "ami-0ff535566e7c13e8c"
+  ami           = "ami-077679e63cd2e9248"
   instance_type = "m4.large"
   vpc_cidr      = "10.0.0.0/16"
   key_name      = "<AWS Key Name>"
