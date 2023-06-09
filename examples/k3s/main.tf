@@ -24,6 +24,10 @@ locals {
 
   # K3S TOKEN for joining cluster
   personal_token = "k3s_flux_cluster"
+
+  # "0.0.0.0/0" allows from anywhere - update
+  # this to be just your ip / collaborators
+  ip_address_allowed = ["0.0.0.0/0"]
 }
 
 # Example queries to get public ip addresses or private DNS names
@@ -171,7 +175,7 @@ resource "aws_security_group" "security_group" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = local.ip_address_allowed
   }
 
   ingress {

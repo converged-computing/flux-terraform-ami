@@ -21,6 +21,10 @@ locals {
   cidr_block_a = "10.0.1.0/24"
   cidr_block_b = "10.0.2.0/24"
   cidr_block_c = "10.0.3.0/24"
+
+  # "0.0.0.0/0" allows from anywhere - update
+  # this to be just your ip / collaborators
+  ip_address_allowed = ["0.0.0.0/0"]
 }
 
 # Example queries to get public ip addresses or private DNS names
@@ -167,7 +171,7 @@ resource "aws_security_group" "security_group" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = local.ip_address_allowed
   }
 
   ingress {
