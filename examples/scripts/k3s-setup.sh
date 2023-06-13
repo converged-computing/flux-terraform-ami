@@ -114,25 +114,5 @@ ExecStartPre=-/sbin/modprobe overlay
 ExecStart=/usr/bin/k3s agent
 EOF
 
+# Loading service units
 sudo systemctl daemon-reload
-
-# LEADER=($(echo $NODELIST | tr "," "\n"))
-
-# if [[ "$LEADER" == $(hostname) ]]; then
-# 	curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" K3S_TOKEN="${k3s_token_name}" sh -
-# else
-#     #Check if K3S API Server is running or not
-#    while :
-#       do
-#          curl --max-time 0.5 -k -o /dev/null https://"$LEADER":6443/livez
-#          res=$?
-#          if test "$res" != "0"; then
-#             echo "the curl command failed with: $res"
-#             sleep 5
-#          else
-#             echo "The K3S service is UP!"
-#             break
-#          fi
-#    done
-#    curl -sfL https://get.k3s.io | K3S_URL=https://"$LEADER":6443 K3S_TOKEN="${k3s_token_name}" K3S_KUBECONFIG_MODE="644" sh -
-# fi  

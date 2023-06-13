@@ -8,7 +8,7 @@ locals {
   ami           = "ami-077679e63cd2e9248"
   instance_type = "m4.large"
   vpc_cidr      = "10.0.0.0/16"
-  key_name      = "<mykey>"
+  key_name      = "hossen1_flux_k3s"
 
   # Must be larger than ami
   volume_size = 30

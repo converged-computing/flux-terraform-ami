@@ -1,8 +1,23 @@
 # Currently Under Construction
 
 # Instructions
+
+## Export AWS credentials to environment variables.
+
+```bash
+export AWS_ACCESS_KEY_ID=<>
+export AWS_SECRET_ACCESS_KEY=<>
+export AWS_SESSION_TOKEN=<>
+export AWS_DEFAULT_REGION=us-east-1
+export TF_VAR_aws_secret=$AWS_SECRET_ACCESS_KEY 
+export TF_VAR_aws_key=$AWS_ACCESS_KEY_ID 
+export TF_VAR_aws_session=$AWS_SESSION_TOKEN 
+```
+
 Assumes you already have the image from the main instructions [../../README.md](README.md) 
 And then init and build:
+
+Note: By Default, the instances only allow ssh from the specific machines. Change `ip_address_allowed` from the `main.tf` file according to your needs. 
 
 ```bash
 $ make init
@@ -16,18 +31,26 @@ Or they all can be run with `make`:
 ```bash
 $ make
 ```
-### Upload K3S starter script and flux job submit into the nodes
+K3S binary is already in the instances.
+
+### Upload K3S starter script and flux job submit script to ALL the nodes
+
 ```bash
-$ scp -i "mykey.pem" <filename> rocky@ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com
+$ scp -i "mykey.pem" k3s_starter.sh rocky@ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com
+$ scp -i "mykey.pem" k3s_cleanup.sh rocky@ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com
+$ scp -i "mykey.pem" k3s_agent_cleanup.sh rocky@ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com
+$ scp -i "mykey.pem" flux_submit_job.sh rocky@ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com
 ```
 
-You can then shell into any node, and check the status of K3S.
+### Note: the k3s deployment script (k3s_starter.sh) assume the clean up scripts are in the user home directory.
+
+You can then shell into any node, and submit flux jobs.
 
 ```bash
 $ ssh -o 'IdentitiesOnly yes' -i "mykey.pem" rocky@ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com
 ```
 
-### Now, Run flux job that will start K3S
+### Now, Run flux job that will start K3S, and will run your workload
 Be sure to change k3s secret value, number of instances, and any modifications!
 
 ```bash
