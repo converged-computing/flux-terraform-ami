@@ -16,6 +16,10 @@ Or they all can be run with `make`:
 ```bash
 $ make
 ```
+### Upload K3S starter script and flux job submit into the nodes
+```bash
+$ scp -i "mykey.pem" <filename> rocky@ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com
+```
 
 You can then shell into any node, and check the status of K3S.
 
@@ -23,15 +27,16 @@ You can then shell into any node, and check the status of K3S.
 $ ssh -o 'IdentitiesOnly yes' -i "mykey.pem" rocky@ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com
 ```
 
-Check the cluster status, the overlay status, and try running a job:
+### Now, Run flux job that will start K3S
+Be sure to change k3s secret value, number of instances, and any modifications!
 
 ```bash
-$ kubectl get nodes
+$ ./flux_submit_job.sh
 ```
 
-You can look at the startup script logs like this if you need to debug.
+You can look at the script logs/ runtime logs like this if you need to debug.
 ```bash
-$ cat /var/log/cloud-init-output.log
+$ cat $HOME/<script_name>.out
 ```
 
 That's it. Enjoy!
