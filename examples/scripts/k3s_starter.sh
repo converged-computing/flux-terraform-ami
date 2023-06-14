@@ -1,12 +1,9 @@
 #!/bin/bash
 
-# Get the ID of the submitted job
-jobid=$(flux job last)
-nodenames=$(flux job info --original ${jobid} R | jq -r .execution.nodelist[0])
-leader=($(echo $nodenames | tr "," "\n"))
 name=$(hostname)
-
-secret_token=${1}
+leader=${1}
+secret_token=${2}
+#[ $# -eq 0 ] && { echo "Usage: $0 argument, Provide k3s secret"; exit 1; }
 
 FILE_K3S_AGENT_ENV=/etc/systemd/system/k3s-agent.service.env
 FILE_K3S_ENV=/etc/systemd/system/k3s.service.env
@@ -21,7 +18,6 @@ if [[ "$leader" == $(hostname) ]]; then
     sudo systemctl daemon-reload
     sudo systemctl start k3s.service
     sudo systemctl status k3s.service	
-
 else
     #Check if K3S API Server is running or not
     echo "I'm a worker, ${name}"

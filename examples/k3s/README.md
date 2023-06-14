@@ -39,7 +39,7 @@ K3S binary is already in the instances.
 $ scp -i "mykey.pem" k3s_starter.sh rocky@ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com
 $ scp -i "mykey.pem" k3s_cleanup.sh rocky@ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com
 $ scp -i "mykey.pem" k3s_agent_cleanup.sh rocky@ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com
-$ scp -i "mykey.pem" flux_submit_job.sh rocky@ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com
+$ scp -i "mykey.pem" flux_batch_job.sh rocky@ec2-xx-xxx-xx-xxx.compute-1.amazonaws.com
 ```
 
 ### Note: the k3s deployment script (k3s_starter.sh) assume the clean up scripts are in the user home directory.
@@ -54,7 +54,7 @@ $ ssh -o 'IdentitiesOnly yes' -i "mykey.pem" rocky@ec2-xx-xxx-xx-xxx.compute-1.a
 Be sure to change k3s secret value, number of instances, and any modifications!
 
 ```bash
-$ ./flux_submit_job.sh
+$ flux batch -N 3 --error k3s_installation.out --output k3s_installation.out flux_batch_job.sh "k3s_secret_token"
 ```
 
 You can look at the script logs/ runtime logs like this if you need to debug.
