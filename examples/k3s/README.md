@@ -52,7 +52,7 @@ $ ssh -o 'IdentitiesOnly yes' -i "mykey.pem" rocky@ec2-xx-xxx-xx-xxx.compute-1.a
 
 ### Now, Run flux job that will start K3S, and will run your workload
 Be sure to change k3s secret value, number of instances, and any modifications!
-
+The below command runs a job with three nodes
 ```bash
 $ flux batch -N 3 --error k3s_installation.out --output k3s_installation.out flux_batch_job.sh "k3s_secret_token"
 ```
