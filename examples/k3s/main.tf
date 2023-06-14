@@ -8,7 +8,7 @@ locals {
   ami           = "ami-077679e63cd2e9248"
   instance_type = "m4.large"
   vpc_cidr      = "10.0.0.0/16"
-  key_name      = "hossen1_flux_k3s"
+  key_name      = "<>"
 
   # Must be larger than ami
   volume_size = 30
@@ -27,7 +27,7 @@ locals {
 
   # "0.0.0.0/0" allows from anywhere - update
   # this to be just your ip / collaborators
-  ip_address_allowed = ["134.9.73.0/24"]
+  ip_address_allowed = ["1.2.3.4/24"]
 }
 
 # Example queries to get public ip addresses or private DNS names
