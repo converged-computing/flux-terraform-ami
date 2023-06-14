@@ -27,7 +27,7 @@ locals {
 
   # "0.0.0.0/0" allows from anywhere - update
   # this to be just your ip / collaborators
-  ip_address_allowed = ["1.2.3.4/24"]
+  ip_address_allowed = ["134.9.73.0/24"]
 }
 
 # Example queries to get public ip addresses or private DNS names
@@ -341,7 +341,7 @@ resource "aws_autoscaling_group" "autoscaling_group" {
   health_check_type  = "ELB"
   capacity_rebalance = false
 
-  # Temporariliy suspending the healthcheck process
+  # Temporariliy suspending the healthcheck process so it doesn't check for instance health now. 
   suspended_processes = ["HealthCheck"]
 
   # Make this really large so we don't check soon :)

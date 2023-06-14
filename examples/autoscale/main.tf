@@ -149,11 +149,12 @@ resource "aws_security_group" "security_group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # temporariliy allowing all protocols for internal communication
   ingress {
     description = "Allow internal traffic"
     from_port   = 0
     to_port     = 0
-    protocol    = "tcp"
+    protocol    = "-1"
     cidr_blocks = [local.cidr_block_a, local.cidr_block_b, local.cidr_block_c]
   }
 
