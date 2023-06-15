@@ -42,25 +42,77 @@ chown -R flux /run/flux
 # See the README.md for commands how to set this manually without systemd
 systemctl restart flux.service
 
+
 ## These are for installing K3S
 
-LEADER=($(echo $NODELIST | tr "," "\n"))
+sudo curl -Lo /usr/bin/k3s https://github.com/k3s-io/k3s/releases/download/v1.26.5+k3s1/k3s
+sudo chmod a+x /usr/bin/k3s
 
-if [[ "$LEADER" == $(hostname) ]]; then
-	curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" K3S_TOKEN="${k3s_token_name}" sh -
-else
-    #Check if K3S API Server is running or not
-   while :
-      do
-         curl --max-time 0.5 -k -o /dev/null https://"$LEADER":6443/livez
-         res=$?
-         if test "$res" != "0"; then
-            echo "the curl command failed with: $res"
-            sleep 5
-         else
-            echo "The K3S service is UP!"
-            break
-         fi
-   done
-   curl -sfL https://get.k3s.io | K3S_URL=https://"$LEADER":6443 K3S_TOKEN="${k3s_token_name}" K3S_KUBECONFIG_MODE="644" sh -
-fi  
+# Systemd file for K3S Manager Node
+sudo tee /etc/systemd/system/k3s.service >/dev/null << EOF
+[Unit]
+Description=Lightweight Kubernetes
+Documentation=https://k3s.io
+Wants=network-online.target
+After=network-online.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=notify
+EnvironmentFile=-/etc/default/%N
+EnvironmentFile=-/etc/sysconfig/%N
+EnvironmentFile=-/etc/systemd/system/k3s.service.env
+KillMode=process
+Delegate=yes
+# Having non-zero Limit*s causes performance problems due to accounting overhead
+# in the kernel. We recommend using cgroups to do container-local accounting.
+LimitNOFILE=1048576
+LimitNPROC=infinity
+LimitCORE=infinity
+TasksMax=infinity
+TimeoutStartSec=0
+Restart=always
+RestartSec=5s
+ExecStartPre=/bin/sh -xc '! /usr/bin/systemctl is-enabled --quiet nm-cloud-setup.service'
+ExecStartPre=-/sbin/modprobe br_netfilter
+ExecStartPre=-/sbin/modprobe overlay
+ExecStart=/usr/bin/k3s server
+EOF
+
+# Systemd file for K3S Agent Node
+sudo tee /etc/systemd/system/k3s-agent.service >/dev/null << EOF
+[Unit]
+Description=Lightweight Kubernetes
+Documentation=https://k3s.io
+Wants=network-online.target
+After=network-online.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=notify
+EnvironmentFile=-/etc/default/%N
+EnvironmentFile=-/etc/sysconfig/%N
+EnvironmentFile=-/etc/systemd/system/k3s-agent.service.env
+KillMode=process
+Delegate=yes
+# Having non-zero Limit*s causes performance problems due to accounting overhead
+# in the kernel. We recommend using cgroups to do container-local accounting.
+LimitNOFILE=1048576
+LimitNPROC=infinity
+LimitCORE=infinity
+TasksMax=infinity
+TimeoutStartSec=0
+Restart=always
+RestartSec=5s
+ExecStartPre=/bin/sh -xc '! /usr/bin/systemctl is-enabled --quiet nm-cloud-setup.service'
+ExecStartPre=-/sbin/modprobe br_netfilter
+ExecStartPre=-/sbin/modprobe overlay
+ExecStart=/usr/bin/k3s agent
+EOF
+
+# Loading service units
+sudo systemctl daemon-reload

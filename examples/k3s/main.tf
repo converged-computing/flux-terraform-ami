@@ -8,15 +8,15 @@ locals {
   ami           = "ami-077679e63cd2e9248"
   instance_type = "m4.large"
   vpc_cidr      = "10.0.0.0/16"
-  key_name      = "<AWS Key Name>"
+  key_name      = "<>"
 
   # Must be larger than ami
   volume_size = 30
 
   # Set autoscaling to consistent size so we don't scale for now
-  min_size     = 1
+  min_size     = 3
   max_size     = 3
-  desired_size = 1
+  desired_size = 3
 
   cidr_block_a = "10.0.1.0/24"
   cidr_block_b = "10.0.2.0/24"
@@ -27,7 +27,7 @@ locals {
 
   # "0.0.0.0/0" allows from anywhere - update
   # this to be just your ip / collaborators
-  ip_address_allowed = ["0.0.0.0/0"]
+  ip_address_allowed = ["134.9.73.0/24"]
 }
 
 # Example queries to get public ip addresses or private DNS names
@@ -157,7 +157,7 @@ resource "aws_security_group" "security_group" {
     description = "Allow internal traffic"
     from_port   = 0
     to_port     = 0
-    protocol    = "tcp"
+    protocol    = "-1"
     cidr_blocks = [local.cidr_block_a, local.cidr_block_b, local.cidr_block_c]
   }
 
@@ -341,10 +341,13 @@ resource "aws_autoscaling_group" "autoscaling_group" {
   health_check_type  = "ELB"
   capacity_rebalance = false
 
+  # Temporariliy suspending the healthcheck process so it doesn't check for instance health now. 
+  suspended_processes = ["HealthCheck"]
+
   # Make this really large so we don't check soon :)
-  health_check_grace_period = 10000
-  desired_capacity          = local.desired_size
-  target_group_arns         = [aws_lb_target_group.target_group.arn]
+  # health_check_grace_period = 10000
+  desired_capacity  = local.desired_size
+  target_group_arns = [aws_lb_target_group.target_group.arn]
 
   termination_policies = ["NewestInstance"]
 
@@ -366,12 +369,12 @@ resource "aws_autoscaling_group" "autoscaling_group" {
   }
 }
 
-resource "aws_autoscaling_schedule" "autoscaling_by_schedule" {
-  scheduled_action_name  = "${local.name}-autoscaling-schedule"
-  min_size               = local.min_size
-  max_size               = local.max_size
-  desired_capacity       = local.max_size
-  start_time             = timeadd(timestamp(), "5m") #adjust to runtime
-  time_zone              = "US/Pacific"               #set to your region
-  autoscaling_group_name = aws_autoscaling_group.autoscaling_group.name
-}
+# resource "aws_autoscaling_schedule" "autoscaling_by_schedule" {
+#   scheduled_action_name  = "${local.name}-autoscaling-schedule"
+#   min_size               = local.min_size
+#   max_size               = local.max_size
+#   desired_capacity       = local.max_size
+#   start_time             = timeadd(timestamp(), "5m") #adjust to runtime
+#   time_zone              = "US/Pacific"               #set to your region
+#   autoscaling_group_name = aws_autoscaling_group.autoscaling_group.name
+# }
